@@ -28,9 +28,29 @@
             <string>/// Initialize the server object
 var type = network_socket_tcp;
 var port = 8000;
-max_clients = 1;
+var max_clients = 1;
 server = network_create_server(type, port, max_clients);
-socket = noone;
+
+randomize();
+var port = irandom_range(49152,65535);
+var host = network_create_server(network_socket_udp, port, 5);
+
+if (host &lt; 0)
+{
+    show_message('Failed to create a broadcast server');
+    game_end();
+}
+else
+{
+    var sock = network_create_socket(network_socket_udp);
+    var buff = buffer_create(32, buffer_fixed, 1);
+
+    buffer_fill(buff, 0, buffer_bool, 0, 32);
+    network_send_broadcast(sock, port, buff, buffer_get_size(buff));
+
+    network_destroy(sock);
+    buffer_delete(buff);
+}
 </string>
           </argument>
         </arguments>
@@ -54,18 +74,18 @@ socket = noone;
           <argument>
             <kind>1</kind>
             <string>/// Check for clients and data
+show_message(string(ds_map_find_value(async_load, "ip")));
+
 var type_event = async_load[? "type"];
 switch(type_event) {
     case network_type_connect: 
         // Add the client to the socket variable
-        if (socket == noone) {
-            socket = async_load[? "socket"];
-        }
+        socket = async_load[? "socket"];
         break;
     
     case  network_type_disconnect:
         // Remove the client from the socket variable
-        socket = noone;
+        
         break;
     
     case network_type_data:
@@ -100,6 +120,30 @@ switch(type_event) {
             <kind>1</kind>
             <string>/// Destroy the server
 network_destroy(server);
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="8" enumb="0">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>draw_text(5,5,"ServerStatus:"+string(server&gt;=0));
+
 </string>
           </argument>
         </arguments>
